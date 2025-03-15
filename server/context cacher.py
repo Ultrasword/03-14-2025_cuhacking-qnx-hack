@@ -2,11 +2,15 @@ import os
 import time
 import requests
 import shutil
+import llm
 
 # Configuration
 WATCH_FOLDER = "/home/pi/videos"
 PROCESSED_FOLDER = "/home/pi/videos/processed"
-API_ENDPOINT = "http://your-api-endpoint/upload"  # Change to your actual API
+
+GEMINI = llm.Gemini()
+
+# API_ENDPOINT = "http://your-api-endpoint/upload"  # Change to your actual API
 
 POLL_INTERVAL = 5  # seconds between folder scans
 
