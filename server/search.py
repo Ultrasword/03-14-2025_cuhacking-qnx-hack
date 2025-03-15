@@ -1,18 +1,19 @@
-from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import json
 import os
+from typing import Optional
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
+
 import re
-from typing import List
 
 # Import the Gemini class from the parent directory
 import sys
 
-sys.path.append("..")  # Add parent directory to path if needed
-from gemini import Gemini  # Import your Gemini class
+from llm import Gemini  # Import your Gemini class
 
-# Path to categories file - update this path as needed
-CATEGORY_FILE = "categories.json"  # Update this to the correct path
+
+app = FastAPI()
 
 
 class SearchRequest(BaseModel):
@@ -23,60 +24,54 @@ class SearchRequest(BaseModel):
 gemini_client = Gemini()
 
 
-# Read categories from categories.json
-def load_categories():
-    try:
-        with open(CATEGORY_FILE, "r") as f:
-            categories_data = json.load(f)
-            return categories_data.get("categories", [])
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading categories: {e}")
-
-
+@app.get("/search_video")
 async def search_categories(query: str):
-    query = query.lower()  # Normalize query to lowercase
-
-    # Load categories
-    categories = load_categories()
-
+    BLOB_FOLDER = os.path.join("assets", "storage", "blobs")
+    
+    if not os.path.exists(BLOB_FOLDER) or not os.listdir(BLOB_FOLDER):
+        raise HTTPException(status_code=404, detail="Blob folder is empty or doesn't exist")
+    
+    all_video_info = ""
+    
+    for filename in os.listdir(BLOB_FOLDER):
+        if filename.endswith('.json'):
+            file_path = os.path.join(BLOB_FOLDER, filename)
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    # Read file content and concatenate
+                    all_video_info += f.read() + "\n"  # Add newline for separation between json objects
+                    
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500, detail=f"Error reading {filename}: {e}"
+                )
+    
     try:
-        # Create the prompt for Gemini with instructions, categories, and query
-        categories_str = ", ".join(categories)
-
-        prompt = f"""You are an AI engine that is designed to return relevant keywords that match the search query.
-        
-Available categories: {categories_str}
-
+        prompt = f"""You are an AI engine that needs to determine which video context most closely matches the search query. You will be given a set of video contexts, along with their audio transcripts and need to determine which one closely matches the provided search query. You are to only return the provided json object for the video/audio pair you choose to be the most accurate. 
 Search query: {query}
+Various video json objects: {all_video_info}
+"""
 
-Return only matching categories in a JSON array format with a key called 'matching_categories'. 
-For example: {{"matching_categories": ["category1", "category2"]}}"""
 
         # Query Gemini using the class
-        result = gemini_client.query(query=prompt, files=[])
+        result = gemini_client.query(query=prompt, files=[])  # Removed empty files list
 
         # Get the text response
         response_text = gemini_client.retrieve_request(result)
+        print(response_text)
+
+        pattern = r"^```json(.*?)```$"
+        
+        if re.match(pattern, response_text, re.DOTALL):
+            response_text = re.sub(r"^```json|```$", "", response_text).strip()
+        
 
         # Parse the JSON from the text response
         try:
-            # Handle potential text before or after the JSON
-            # Try to extract just the JSON part
-            json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
-            if json_match:
-                response_text = json_match.group(0)
+            selected_blob = json.loads(response_text)
+            return {"matched_video": selected_blob["video"]}
 
-            result_json = json.loads(response_text)
-
-            if "matching_categories" not in result_json:
-                raise ValueError("Response doesn't contain matching_categories")
-
-            # Validate that all returned categories are in the original list
-            valid_categories = [
-                cat for cat in result_json["matching_categories"] if cat in categories
-            ]
-
-            return {"matching_categories": valid_categories}
         except json.JSONDecodeError:
             raise HTTPException(
                 status_code=500, detail="Invalid JSON response from Gemini"
