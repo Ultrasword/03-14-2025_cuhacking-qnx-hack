@@ -19,6 +19,8 @@ class Gemini:
     def __init__(self):
         self._client = genai.Client(api_key=API_KEY)
 
+        self._running_chats = {}
+
     # ---------------------------------------------- #
     # logic
     # ---------------------------------------------- #
@@ -52,7 +54,7 @@ class Gemini:
         # upload file then request transcript
         audio = self._client.files.upload(file=audio_file)
         result = self.query(
-            query="process what the audio is saying. then when you want to start actually writing down transcription (no extra comments), write a <<EOF>> and then start writing down the transcription.",
+            query="process what the audio is saying. then when you want to start actually writing down transcription (no extra comments).",
             files=[audio],
         )
         return result

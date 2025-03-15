@@ -1,6 +1,34 @@
 {
-  "categories": {
-    "eating food": ["video1.json", "video2.json"],
-    "working on project": ["video3.json", "video4.json"]
-  }
+    "categories": {
+        "eating food": [
+            "video1.json",
+            "video2.json",
+            "assets/storage/blobs/IMG_4180.json",
+            "assets/storage/blobs/IMG_4180.json"
+        ],
+        "working on project": [
+            "video3.json",
+            "video4.json"
+        ],
+        "experiencing rejection": [
+            "assets/storage/blobs/IMG_4176.json",
+            "assets/storage/blobs/IMG_4176 2.json",
+            "assets/storage/blobs/IMG_4172.json"
+        ],
+        "addressing a problem": [
+            "assets/storage/blobs/IMG_4179.json",
+            "assets/storage/blobs/IMG_4179.json"
+        ],
+        "observing setting": [
+            "assets/storage/blobs/IMG_4177.json",
+            "assets/storage/blobs/IMG_4169.json",
+            "assets/storage/blobs/IMG_4177.json"
+        ],
+        "discussing finance": [
+            "assets/storage/blobs/IMG_4170.json"
+        ],
+        "starting activity": [
+            "assets/storage/blobs/IMG_4171.json"
+        ]
+    }
 }

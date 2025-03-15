@@ -84,11 +84,17 @@ class CacheAutoLoader(FileSystemEventHandler):
 
         # step 4: create video.json file
         # determine category + etc
-        _raw_result = self._llm.categorize_context(
-            _video_context, self._cache["categories"], _audio_transcript
-        ).text
-        print(_raw_result)
-        query_data = json.loads(_raw_result)
+        while True:
+            _raw_result = self._llm.categorize_context(
+                _video_context, self._cache["categories"], _audio_transcript
+            ).text
+            print(_raw_result)
+            try:
+                query_data = json.loads(_raw_result)
+                break
+            except:
+                print("Try again")
+                continue
 
         if len(query_data["matching_categories"]) == 0:
             video_metadata["category"] = query_data["new_category"]
