@@ -61,8 +61,15 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
     base_directory = os.path.dirname(current_dir)  # Go up one level from server
 
     # Define the recording and videos directories
-    recording_directory = os.path.join(base_directory, "assets", "storage", "recording")
-    videos_directory = os.path.join(base_directory, "assets", "storage", "videos")
+    recording_directory = os.path.join(
+        base_directory, "server", "assets", "storage", "recording"
+    )
+    videos_directory = os.path.join(
+        base_directory, "server", "assets", "storage", "videos"
+    )
+    audio_directory = os.path.join(
+        base_directory, "server", "assets", "storage", "audio"
+    )
 
     # Ensure both directories exist
     os.makedirs(recording_directory, exist_ok=True)
@@ -142,7 +149,7 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
                 else:
                     print("Error: Failed to capture frame.")
                     break
-                time.sleep(1 / (2 * fps))
+                time.sleep(0.5 / fps)
 
             writer.release()
             audio_thread.join()
@@ -153,22 +160,20 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
             merge_audio_video(video_filepath, audio_filepath, final_filepath)
             print(f"Final clip saved as {final_filepath}")
 
+            # move audio folder to correct place
+            destination_path = os.path.join(audio_directory, audio_filename)
+            shutil.move(audio_filepath, destination_path)
+            print(f"Audio moved to {destination_path}")
+
             # Move the final file to the videos directory and remove temporary files
             destination_path = os.path.join(videos_directory, final_filename)
             shutil.move(final_filepath, destination_path)
             os.remove(video_filepath)
-            os.remove(audio_filepath)
             print(f"Video moved to {destination_path}")
 
     except KeyboardInterrupt:
         print("\nRecording stopped by user.")
 
-        # move any files from the recording directory to the videos directory
-        for file in os.listdir(recording_directory):
-            shutil.move(
-                os.path.join(recording_directory, file),
-                os.path.join(videos_directory, file),
-            )
     finally:
         # Release resources properly
         cam.release()
