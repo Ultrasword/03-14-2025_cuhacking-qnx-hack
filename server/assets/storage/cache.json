@@ -1,0 +1,12 @@
+{
+  "categories": [
+    {
+      "name": "eating food",
+      "files": ["video1.json", "video2.json"]
+    },
+    {
+      "name": "working on project",
+      "files": ["video3.json", "video4.json"]
+    }
+  ]
+}
