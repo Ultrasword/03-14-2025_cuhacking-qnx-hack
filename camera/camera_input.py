@@ -20,7 +20,7 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
 
     # Initialize webcam using OpenCV
     cam = cv2.VideoCapture(
-        2
+        0
     )  # Use the correct camera index (2 is usually for the external webcam)
 
     # Set the resolution of the camera
