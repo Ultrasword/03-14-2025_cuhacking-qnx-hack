@@ -1,8 +1,7 @@
 import time
 import os
 import shutil
-import imageio
-from webcam import Webcam
+import cv2
 from datetime import datetime
 
 def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
@@ -18,9 +17,16 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
     os.makedirs(recording_directory, exist_ok=True)
     os.makedirs(videos_directory, exist_ok=True)
     
-    # Initialize webcam
-    cam = Webcam(device="/dev/video2")
-    cam.start()
+    # Initialize webcam using OpenCV
+    cam = cv2.VideoCapture(2)  # Use the correct camera index (2 is usually for the external webcam)
+    
+    # Set the resolution of the camera
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
+    
+    if not cam.isOpened():
+        print("Error: Camera could not be opened.")
+        return
     
     try:
         print("Starting continuous recording. Press Ctrl+C to stop.")
@@ -32,18 +38,23 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
             
             print(f"Recording clip: {filename}...")
             
-            # Initialize video writer
-            writer = imageio.get_writer(recording_filepath, fps=fps)
+            # Initialize video writer with OpenCV
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4
+            writer = cv2.VideoWriter(recording_filepath, fourcc, fps, resolution)
             
             start_time = time.time()
             while (time.time() - start_time) < clip_duration:
-                frame = cam.get_current_frame()
-                if frame is not None:
-                    writer.append_data(frame)
+                ret, frame = cam.read()
+                if ret:
+                    # Write frame to the video
+                    writer.write(frame)
+                else:
+                    print("Error: Failed to capture frame.")
+                    break
                 time.sleep(1 / fps)
             
             # Release writer
-            writer.close()
+            writer.release()
             print(f"Clip {filename} complete. Video saved temporarily as {recording_filepath}")
             
             # Move the file to the videos directory
@@ -54,10 +65,8 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
     except KeyboardInterrupt:
         print("\nRecording stopped by user.")
     finally:
-        # Ensure resources are released properly
-        if 'writer' in locals():
-            writer.close()
-        cam.stop()
+        # Release resources properly
+        cam.release()
         print("Camera stopped. Exiting.")
 
 if __name__ == "__main__":
