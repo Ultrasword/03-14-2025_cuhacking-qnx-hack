@@ -66,6 +66,7 @@ class CacheAutoLoader(FileSystemEventHandler):
         # extract audio file from video
         video_clip = moviepy.VideoFileClip(video_path)
         audio_clip = video_clip.audio
+        print(audio_clip, video_clip)
         filename = os.path.splitext(os.path.basename(video_path))[0]
         audio_file = os.path.join(AUDIO_FOLDER, filename + ".mp3")
         audio_clip.write_audiofile(audio_file, logger=None)
@@ -82,37 +83,12 @@ class CacheAutoLoader(FileSystemEventHandler):
         _video_context = self._llm.describe_video(video_path, _audio_transcript).text
         video_metadata["context"] = _video_context
 
-        # step 4: create video.json file
+        # step 4: create blob file
         # determine category + etc
-        while True:
-            _raw_result = self._llm.categorize_context(
-                _video_context, self._cache["categories"], _audio_transcript
-            ).text
-            print(_raw_result)
-            try:
-                query_data = json.loads(_raw_result)
-                break
-            except:
-                print("Try again")
-                continue
-
-        if len(query_data["matching_categories"]) == 0:
-            video_metadata["category"] = query_data["new_category"]
-        else:
-            video_metadata["category"] = query_data["matching_categories"][0]
-
         print(video_metadata)
         metadata_path = os.path.join(BLOB_FOLDER, filename + ".json")
         with open(metadata_path, "w") as f:
             json.dump(video_metadata, f, indent=4)
-
-        # step 5: update cache.json
-        if video_metadata["category"] not in self._cache["categories"]:
-            self._cache["categories"][video_metadata["category"]] = []
-
-        self._cache["categories"][video_metadata["category"]].append(metadata_path)
-        with open(CACHE_FILE, "w") as f:
-            json.dump(self._cache, f, indent=4)
 
     # ---------------------------------------------- #
     # event
