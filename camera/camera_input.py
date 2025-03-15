@@ -3,11 +3,11 @@ import os
 import shutil
 import imageio
 from webcam import Webcam
+from datetime import datetime
 
 def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
     # Get base directory
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Navigate to project root (assuming this script is in the server directory)
     base_directory = os.path.dirname(current_dir)  # Go up one level from server
     
     # Define the recording and videos directories
@@ -19,20 +19,18 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
     os.makedirs(videos_directory, exist_ok=True)
     
     # Initialize webcam
-    cam = Webcam()
+    cam = Webcam(device="/dev/video2")
     cam.start()
-    
-    # Counter for video files
-    clip_counter = 1
     
     try:
         print("Starting continuous recording. Press Ctrl+C to stop.")
         while True:
-            # Define filename for the current clip
-            filename = f"video{clip_counter}.mp4"
+            # Generate a timestamp-based filename
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename = f"video_{timestamp}.mp4"
             recording_filepath = os.path.join(recording_directory, filename)
             
-            print(f"Recording clip #{clip_counter}...")
+            print(f"Recording clip: {filename}...")
             
             # Initialize video writer
             writer = imageio.get_writer(recording_filepath, fps=fps)
@@ -46,15 +44,12 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
             
             # Release writer
             writer.close()
-            print(f"Clip {clip_counter} complete. Video saved temporarily as {recording_filepath}")
+            print(f"Clip {filename} complete. Video saved temporarily as {recording_filepath}")
             
             # Move the file to the videos directory
             final_filepath = os.path.join(videos_directory, filename)
             shutil.move(recording_filepath, final_filepath)
             print(f"Video moved to {final_filepath}")
-            
-            # Increment counter for next clip
-            clip_counter += 1
             
     except KeyboardInterrupt:
         print("\nRecording stopped by user.")
