@@ -57,24 +57,10 @@ class Gemini:
         )
         return result
 
-    def describe_video(self, video_file: str):
+    def describe_video(self, video_file: str, audio_transcript: str):
         # check if file exists
         if not os.path.exists(video_file):
             raise FileNotFoundError(f"File not found: {video_file}")
-
-        # request transcript
-        # extract audio file from video
-
-        video_clip = moviepy.VideoFileClip(video_file)
-        audio_clip = video_clip.audio
-        audio_file = video_file.rsplit(".", 1)[0] + ".mp3"
-        audio_clip.write_audiofile(audio_file, logger=None)
-
-        # close both
-        video_clip.close()
-        audio_clip.close()
-
-        _audio_transcript = self.transcript_audio(audio_file).text
 
         # send query about video file
         # upload file
@@ -90,12 +76,39 @@ class Gemini:
 
         # send request for video
         result = self.query(
-            query="Describe what is going on in this video clip",
+            query=f"you are a professional scene analyzer that gives out great short descriptions of what the topic is in short video clips. you're given a transcript and a video clip and your goal is to output a short description of the context of the scene.  Here is the transcript: {audio_transcript}. The video is attached. Tell me the context of this scene in 1-2 sentences.",
             files=[video],
             model=GEMINI_VIDEO_MODEL,
         )
 
         return result
+
+    def categorize_context(self, context: str, categories: list, transcript: str):
+        # given a set of categories + context + transcript of the video
+        # determine if an existing category is good
+        # or make a new one
+
+        query_string = f"""
+        You are an AI engine that is designed to return relevant keywords that categorize a video based on its context and transcript.
+
+Available categories: {", ".join(categories)}
+
+Video Context: {context}
+Video transcript: {transcript}
+
+Return only matching categories in a JSON array format with a key called 'matching_categories'. If there are no valid matching categories, set the "new_category" key to be what you think the new category should be.
+Just output the raw json. do not output anything else. NO need for formatting -- just text.
+For example: {{"matching_categories": ["category1", "category2"], "new_category": null}}
+        """
+
+        result = self.query(query=query_string, files=[])
+        return result
+
+    def search_related_categories(self, search: str, cache_json: str):
+        # load up the categories
+        # search for related categories
+
+        pass
 
     def retrieve_request(self, request_result):
         return request_result.text
