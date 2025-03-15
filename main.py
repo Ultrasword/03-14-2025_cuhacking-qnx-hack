@@ -14,9 +14,10 @@ GEMINI = llm.Gemini()
 #     ["assets/IMG_4173.jpg", "assets/IMG_4174.jpg", "assets/IMG_4175.jpg"]
 # )
 # print(result.text)
-result = GEMINI.transcript_audio("assets/testaudio.m4a")
+# result = GEMINI.transcript_audio("assets/testaudio.m4a")
+# print(result.text)
+result = GEMINI.describe_video("assets/testvideo.mp4")
 print(result.text)
-
 
 # ---------------------------------------------- #
 # app
