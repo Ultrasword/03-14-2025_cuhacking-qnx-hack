@@ -5,8 +5,8 @@ import './styles.css'; // Import the CSS file
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [videos, setVideos] = useState<any[]>([]); 
-  const [hasSearched, setHasSearched] = useState(false); // Add this state
+  const [videoUrl, setVideoUrl] = useState<string | null>(null); // Store the video URL
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     console.log("Client-side only");
@@ -15,23 +15,23 @@ export default function Home() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
-    setHasSearched(true); // Set this to true when search is performed
+    setHasSearched(true);
 
     try {
-      const response = await fetch("/api/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: searchQuery }),
-      });
+      // Make the GET request to search endpoint
+      const response = await fetch(`http://127.0.0.1:8000/search_video?query=${encodeURIComponent(searchQuery)}`);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch videos");
+        throw new Error("Failed to fetch video");
       }
 
       const data = await response.json();
-      setVideos(data.videos);
+      
+      if (data.matched_video) {
+        setVideoUrl(data.matched_video); // Set the video URL in state
+      } else {
+        setVideoUrl(null); // If no video is matched, reset the video URL
+      }
     } catch (error) {
       console.error("Error:", error);
     }
@@ -57,21 +57,17 @@ export default function Home() {
         </div>
       </form>
 
-      {/* Displaying the Videos */}
+      {/* Displaying the video */}
       <div className="video-results">
-        {videos.length > 0 ? (
-          videos.map((video) => (
-            <div key={video.id} className="video-item">
-              <img src={video.thumbnail} alt={video.title} className="video-thumbnail" />
-              <h3 className="video-title">{video.title}</h3>
-              <p className="video-description">{video.description}</p>
-              <a href={video.url} target="_blank" rel="noopener noreferrer" className="watch-link">
-                Watch
-              </a>
-            </div>
-          ))
+        {videoUrl ? (
+          <div className="video-item">
+            <video controls className="video-player">
+              <source src={videoUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         ) : hasSearched ? (
-          <p>No videos found</p>
+          <p>No video found for the search term.</p>
         ) : null}
       </div>
     </div>
