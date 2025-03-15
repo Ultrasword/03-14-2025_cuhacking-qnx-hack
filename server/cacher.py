@@ -36,6 +36,15 @@ class CacheAutoLoader(FileSystemEventHandler):
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
+    def is_file_locked(self, file_path):
+        """Check if the file is locked by attempting to open it in exclusive mode."""
+        try:
+            # Try to open the file for writing (exclusive lock)
+            with open(file_path, 'a'):
+                return False  # File is not locked
+        except IOError:
+            return True  # File is locked
+        
     # ---------------------------------------------- #
     # logic
     # ---------------------------------------------- #
@@ -104,6 +113,10 @@ class CacheAutoLoader(FileSystemEventHandler):
         _filename = os.path.relpath(_filename, _BASE_PATH)
         print(_filename, "created")
 
+        while self.is_file_locked(_filename):
+            print(f"File {_filename} is locked, waiting...")
+            time.sleep(1)  # Sleep for 1 second before checking again
+        
         self.add_video_to_cache(_filename)
 
     def on_modified(self, event):

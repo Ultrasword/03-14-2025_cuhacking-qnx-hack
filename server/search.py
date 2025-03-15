@@ -70,7 +70,9 @@ Various video json objects: {all_video_info}
         # Parse the JSON from the text response
         try:
             selected_blob = json.loads(response_text)
-            return {"matched_video": selected_blob["video"]}
+            video_title = selected_blob["video"]
+            video_file = open(video_title, "rb")  # Open the video file in binary read mode
+            return StreamingResponse(video_file, media_type="video/mp4")
 
         except json.JSONDecodeError:
             raise HTTPException(
