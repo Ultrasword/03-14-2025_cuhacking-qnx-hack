@@ -83,10 +83,10 @@ class Gemini:
         # check if file got uploaded
         while video.state.name == "PROCESSING":
             time.sleep(0.3)
-            video = self._client.files.get(file_id=video.id)
+            video = self._client.files.get(name=video.name)
 
         if video.state.name == "FAILED":
-            raise Exception("Failed to upload video")
+            raise Exception("Failed to upload video", video.state.name)
 
         # send request for video
         result = self.query(
