@@ -7,6 +7,7 @@ import pyaudio
 import wave
 import threading
 import subprocess
+import platform
 
 
 def record_audio_segment(
@@ -77,22 +78,33 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
 
     # Initialize webcam using OpenCV
     cam = cv2.VideoCapture(0)
+
+    audio_enabled = platform.system() != "Linux"
+
     # Initialize audio recording
+    if audio_enabled:
+        audio = pyaudio.PyAudio()
+        audio_format = pyaudio.paInt16  # 16-bit resolution
+        channels = 1  # Mono audio
+        rate = 44100  # 44.1kHz sampling rate
+        chunk = 1024  # 2^10 samples for buffer
 
-    audio = pyaudio.PyAudio()
-    audio_format = pyaudio.paInt16  # 16-bit resolution
-    channels = 1  # Mono audio
-    rate = 44100  # 44.1kHz sampling rate
-    chunk = 1024  # 2^10 samples for buffer
+        # Create a stream object
+        stream = audio.open(
+            format=audio_format,
+            channels=channels,
+            rate=rate,
+            input=True,
+            frames_per_buffer=chunk,
+        )
+    else:
+        audio = None
+        audio_format = None
+        channels = None
+        rate = None
+        chunk = None
+        stream = None
 
-    # Create a stream object
-    stream = audio.open(
-        format=audio_format,
-        channels=channels,
-        rate=rate,
-        input=True,
-        frames_per_buffer=chunk,
-    )
     # Use the correct camera index (2 is usually for the external webcam)
 
     # Set the resolution of the camera
@@ -108,13 +120,15 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
         while True:
             # Generate timestamp-based filenames for video and audio
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            video_filename = f"video_{timestamp}.mp4"
-            audio_filename = f"audio_{timestamp}.wav"
-            final_filename = f"final_{timestamp}.mp4"
+            if audio_enabled:
+                audio_filename = f"audio_{timestamp}.wav"
+                audio_filepath = os.path.join(recording_directory, audio_filename)
 
+            video_filename = f"video_{timestamp}.mp4"
+            final_filename = f"final_{timestamp}.mp4"
             video_filepath = os.path.join(recording_directory, video_filename)
-            audio_filepath = os.path.join(recording_directory, audio_filename)
-            final_filepath = os.path.join(recording_directory, final_filename)
+            if audio_enabled:
+                final_filepath = os.path.join(recording_directory, final_filename)
 
             print(f"Recording clip: {video_filename}...")
 
@@ -122,24 +136,25 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec for mp4
             writer = cv2.VideoWriter(video_filepath, fourcc, fps, resolution)
 
-            start_event = threading.Event()
-            # Start audio recording in a separate thread
-            audio_thread = threading.Thread(
-                target=record_audio_segment,
-                args=(
-                    clip_duration,
-                    audio,
-                    stream,
-                    chunk,
-                    audio_format,
-                    channels,
-                    rate,
-                    audio_filepath,
-                    start_event,
-                ),
-            )
-            audio_thread.start()
-            start_event.set()
+            if audio_enabled:
+                start_event = threading.Event()
+                # Start audio recording in a separate thread
+                audio_thread = threading.Thread(
+                    target=record_audio_segment,
+                    args=(
+                        clip_duration,
+                        audio,
+                        stream,
+                        chunk,
+                        audio_format,
+                        channels,
+                        rate,
+                        audio_filepath,
+                        start_event,
+                    ),
+                )
+                audio_thread.start()
+                start_event.set()
 
             start_time = time.time()
             frame_count = 0
@@ -157,24 +172,30 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
                 frame_count += 1
 
             writer.release()
-            audio_thread.join()
+            if audio_enabled:
+                audio_thread.join()
+                print(f"Clip {video_filename} recorded. Merging audio and video...")
 
-            print(f"Clip {video_filename} recorded. Merging audio and video...")
+                # Merge the video and audio files into a final file
+                merge_audio_video(video_filepath, audio_filepath, final_filepath)
+                print(f"Final clip saved as {final_filepath}")
 
-            # Merge the video and audio files into a final file
-            merge_audio_video(video_filepath, audio_filepath, final_filepath)
-            print(f"Final clip saved as {final_filepath}")
+                # Move the audio file to the audio directory
+                destination_path = os.path.join(audio_directory, audio_filename)
+                shutil.move(audio_filepath, destination_path)
+                print(f"Audio moved to {destination_path}")
 
-            # move audio folder to correct place
-            destination_path = os.path.join(audio_directory, audio_filename)
-            shutil.move(audio_filepath, destination_path)
-            print(f"Audio moved to {destination_path}")
-
-            # Move the final file to the videos directory and remove temporary files
-            destination_path = os.path.join(videos_directory, final_filename)
-            shutil.move(final_filepath, destination_path)
-            os.remove(video_filepath)
-            print(f"Video moved to {destination_path}")
+                # Move the final merged file to the videos directory and remove the temporary video file
+                destination_path = os.path.join(videos_directory, final_filename)
+                shutil.move(final_filepath, destination_path)
+                os.remove(video_filepath)
+                print(f"Video moved to {destination_path}")
+            else:
+                print(f"Clip {video_filename} recorded.")
+                # If audio is disabled, simply move the video file
+                destination_path = os.path.join(videos_directory, video_filename)
+                shutil.move(video_filepath, destination_path)
+                print(f"Video moved to {destination_path}")
 
     except KeyboardInterrupt:
         print("\nRecording stopped by user.")
@@ -183,6 +204,9 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
         # Release resources properly
         cam.release()
         print("Camera stopped. Exiting.")
+        if audio_enabled:
+            stream.close()
+            audio.terminate()
 
 
 if __name__ == "__main__":
