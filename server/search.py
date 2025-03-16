@@ -89,7 +89,7 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
         print(f"video paths: {video_paths}")
 
         for path in video_paths:
-            if not os.path.exists(video_path):
+            if not os.path.exists(path):
                 raise HTTPException(status_code=404, detail="Video file not found")
 
         return video_paths
