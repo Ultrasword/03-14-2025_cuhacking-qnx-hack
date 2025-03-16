@@ -4,6 +4,7 @@ import json
 import fcntl
 import multiprocessing
 import traceback
+import logging
 
 import llm
 import moviepy
@@ -19,6 +20,13 @@ VIDEO_FOLDER = os.path.join("assets", "storage", "video")
 AUDIO_FOLDER = os.path.join("assets", "storage", "audio")
 
 os.chdir(_BASE_PATH)
+
+
+# Setup logging configuration
+logging.basicConfig(
+    level=logging.DEBUG,  # Set to DEBUG or INFO depending on verbosity needed
+    format="%(asctime)s [%(process)d] %(levelname)s - %(message)s",
+)
 
 
 class CacheAutoLoader(FileSystemEventHandler):
@@ -52,7 +60,7 @@ class CacheAutoLoader(FileSystemEventHandler):
             # Extract audio, get transcript, and video context
             video_clip = moviepy.VideoFileClip(video_path)
             audio_clip = video_clip.audio
-            print(audio_clip, video_clip)
+            logging.info(f"Audio Clip: {audio_clip}, Video Clip: {video_clip}")
             filename = os.path.splitext(os.path.basename(video_path))[0]
             audio_file = os.path.join(AUDIO_FOLDER, filename + ".mp3")
             audio_clip.write_audiofile(audio_file, logger=None)
@@ -75,21 +83,21 @@ class CacheAutoLoader(FileSystemEventHandler):
                 json.dump(video_metadata, f, indent=4)
 
         except Exception as e:
-            print(f"Error processing {video_path}: {str(e)}")
+            logging.error(f"Error processing {video_path}: {str(e)}")
             traceback.print_exc()
 
     def on_created(self, event):
         """Called when a file or directory is created."""
         _filename = event.src_path
         _filename = os.path.relpath(_filename, _BASE_PATH)
-        print(_filename, "created")
+        logging.info(f"{_filename} created")
         time.sleep(3)
 
         # Safely call add_video_to_cache
         try:
             self.add_video_to_cache(_filename)
         except Exception as e:
-            print(f"Error while adding video to cache: {str(e)}")
+            logging.error(f"Error while adding video to cache: {str(e)}")
             traceback.print_exc()
 
     def on_modified(self, event):
@@ -108,7 +116,7 @@ def monitor_directory(path: str):
 
     observer.schedule(event_handler, path, recursive=True)
     observer.start()
-    print(f"Started monitoring {path} (press Ctrl+C to stop)")
+    logging.info(f"Started monitoring {path} (press Ctrl+C to stop)")
 
     try:
         while True:
@@ -124,7 +132,7 @@ def worker():
     try:
         monitor_directory(VIDEO_FOLDER)
     except Exception as e:
-        print(f"Worker failed with error: {str(e)}")
+        logging.error(f"Worker failed with error: {str(e)}")
         traceback.print_exc()
 
 
@@ -135,7 +143,7 @@ def start_worker():
         process.start()
         process.join()  # Block until the worker process finishes
 
-        print("Worker crashed or completed. Restarting...")
+        logging.info("Worker crashed or completed. Restarting...")
         time.sleep(1)  # Optional: Add a small delay before restarting
 
 
