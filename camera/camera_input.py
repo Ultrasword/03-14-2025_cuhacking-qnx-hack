@@ -142,14 +142,19 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
             start_event.set()
 
             start_time = time.time()
+            frame_count = 0
             while (time.time() - start_time) < clip_duration:
+                expected_time = start_time + frame_count / fps
+                current_time = time.time()
+                if current_time < expected_time:
+                    time.sleep(expected_time - current_time)
                 ret, frame = cam.read()
                 if ret:
                     writer.write(frame)
                 else:
                     print("Error: Failed to capture frame.")
                     break
-                time.sleep(0.5 / fps)
+                frame_count += 1
 
             writer.release()
             audio_thread.join()
