@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from typing import List
 import os
 import json
 import re
@@ -20,6 +21,11 @@ app.add_middleware(
 # Initialize Gemini client
 gemini_client = Gemini()
 
+def iterfile(video_paths: List[str]):
+    for video_path in video_paths:
+        with open(video_path, "rb") as video_file:
+            while chunk := video_file.read(1024 * 1024 * 4):  # Read in chunks of 4MB
+                yield chunk
 
 @app.get("/search_video")
 async def search_categories(query: str):
@@ -49,6 +55,22 @@ async def search_categories(query: str):
     prompt = f"""
 You are an advanced AI engine tasked with finding the most relevant video context based on a given search query. You will be provided with a set of video contexts and their corresponding audio transcripts. Your objective is to identify the video/audio pairs that best align with the provided search query. Return the JSON objects for up to 3 video/audio pairs that most accurately match the query. You are not required to return 3, but you must provide at least one relevant result. If no context matches the query closely, respond with "no match."
 
+Return the data in the following format:
+
+
+{
+  "matches": [
+    {
+      "category": null,
+      "context": "Brief description of the scene",
+      "transcript": "Transcript of the video",
+      "video": "Path to the video file",
+      "audio": "Path to the audio file"
+    },
+    ...
+    (up to 3 relevant matches)
+  ]
+}
 Search query: {query}
 
 Various video json objects: {all_video_info if all_video_info else "No video json objects found"}
@@ -65,21 +87,21 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
         response_text = match.group(1).strip()
     try:
         selected_blob = json.loads(response_text)
-        video_path = selected_blob["video"]
 
-        print(f"Selected video: {video_path}")
+        matches = selected_blob.get("matches", [])
+        video_paths = [match["video"] for match in matches[:3]]
 
-        if not os.path.exists(video_path):
-            raise HTTPException(status_code=404, detail="Video file not found")
+        print(f"video paths: {video_paths}")
 
-        def iterfile():
-            with open(video_path, "rb") as video_file:
-                while chunk := video_file.read(
-                    1024 * 1024 * 4
-                ):  # Read in chunks of 1MB
-                    yield chunk
+        for path in video_paths:
+            if not os.path.exists(path):
+                raise HTTPException(status_code=404, detail="Video file not found")
 
-        return StreamingResponse(iterfile(), media_type="video/mp4")
+        for path in video_paths:
+         if not os.path.exists(path):
+                return {"error": f"File {path} not found"}
+
+         return StreamingResponse(iterfile(video_paths), media_type="video/mp4")
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=404, detail="Search failed")
