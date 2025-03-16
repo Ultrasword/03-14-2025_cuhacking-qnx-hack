@@ -78,12 +78,11 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
 
     # Initialize webcam using OpenCV
     cam = cv2.VideoCapture(0)
+    camera_fps = cam.get(cv2.CAP_PROP_FPS)
+    if not camera_fps or camera_fps <= 0:
+        camera_fps = fps  # Fallback if camera doesn't provide fps
 
     audio_enabled = platform.system() != "Linux"
-    if platform.system() == "Linux":
-        capture_fps = fps * 3
-    else:
-        capture_fps = fps
 
     # Initialize audio recording
     if audio_enabled:
@@ -138,7 +137,7 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
 
             # Initialize video writer with OpenCV
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec for mp4
-            writer = cv2.VideoWriter(video_filepath, fourcc, fps, resolution)
+            writer = cv2.VideoWriter(video_filepath, fourcc, camera_fps, resolution)
 
             if audio_enabled:
                 start_event = threading.Event()
@@ -163,10 +162,6 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
             start_time = time.time()
             frame_count = 0
             while (time.time() - start_time) < clip_duration:
-                expected_time = start_time + frame_count / capture_fps
-                current_time = time.time()
-                if current_time < expected_time:
-                    time.sleep(expected_time - current_time)
                 ret, frame = cam.read()
                 if ret:
                     writer.write(frame)
