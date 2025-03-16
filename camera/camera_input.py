@@ -82,7 +82,8 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
     if not camera_fps or camera_fps <= 0:
         camera_fps = fps  # Fallback if camera doesn't provide fps
 
-    audio_enabled = platform.system() != "Linux"
+    # audio_enabled = platform.system() != "Linux"
+    audio_enabled = True
 
     # Initialize audio recording
     if audio_enabled:
