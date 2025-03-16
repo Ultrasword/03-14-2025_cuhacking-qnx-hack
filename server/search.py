@@ -1,36 +1,37 @@
-from pydantic import BaseModel
-import json
-import os
-from typing import Optional
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-
+import os
+import json
 import re
-
-# Import the Gemini class from the parent directory
-import sys
-
-from llm import Gemini  # Import your Gemini class
-
+from llm import Gemini  # Ensure this is properly imported
 
 app = FastAPI()
 
+# CORS setup to allow frontend to make requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class SearchRequest(BaseModel):
-    query: str  # User's search query
-
-
-# Initialize the Gemini client
+# Initialize Gemini client
 gemini_client = Gemini()
-
 
 @app.get("/search_video")
 async def search_categories(query: str):
     BLOB_FOLDER = os.path.join("assets", "storage", "blobs")
+
+    print(f"Searching for: {query}")
     
-    if not os.path.exists(BLOB_FOLDER) or not os.listdir(BLOB_FOLDER):
-        raise HTTPException(status_code=404, detail="Blob folder is empty or doesn't exist")
+    if not os.path.exists(BLOB_FOLDER):
+        # make path
+        os.makedirs(BLOB_FOLDER)
     
+    print(f"Filepath to search: {BLOB_FOLDER}")
+
     all_video_info = ""
     
     for filename in os.listdir(BLOB_FOLDER):
@@ -39,7 +40,6 @@ async def search_categories(query: str):
             
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
-                    # Read file content and concatenate
                     all_video_info += f.read() + "\n"  # Add newline for separation between json objects
                     
             except Exception as e:
@@ -48,30 +48,40 @@ async def search_categories(query: str):
                 )
     
     try:
-        prompt = f"""You are an AI engine that needs to determine which video context most closely matches the search query. You will be given a set of video contexts, along with their audio transcripts and need to determine which one closely matches the provided search query. You are to only return the provided json object for the video/audio pair you choose to be the most accurate. 
+        prompt = f"""
+You are an AI engine that needs to determine which video context most closely matches the search query. You will be given a set of video contexts, along with their audio transcripts and need to determine which one closely matches the provided search query. You are to only return the provided json object for the video/audio pair you choose to be the most accurate. 
+
 Search query: {query}
-Various video json objects: {all_video_info}
+
+Various video json objects: {all_video_info if all_video_info else "No video json objects found"}
+
+If there are no json objects found, just return "NULL" on its own.
+
 """
-
-
-        # Query Gemini using the class
         result = gemini_client.query(query=prompt, files=[])  # Removed empty files list
+        print(f"The request: {prompt}\n\n")
 
-        # Get the text response
         response_text = gemini_client.retrieve_request(result)
-        print(response_text)
+        print(f"The response: {response_text}")
 
-        pattern = r"^```json(.*?)```$"
-        
-        if re.match(pattern, response_text, re.DOTALL):
-            response_text = re.sub(r"^```json|```$", "", response_text).strip()
-        
+        pattern = r"```json(.*?)```"
 
-        # Parse the JSON from the text response
+        if response_text == "NULL":
+            raise HTTPException(status_code=404, detail="No video context found")
+        
+        match = re.search(pattern, response_text, re.DOTALL)
+        if match:
+            response_text = match.group(1).strip()
+        
         try:
             selected_blob = json.loads(response_text)
             video_title = selected_blob["video"]
-            video_file = open(video_title, "rb")  # Open the video file in binary read mode
+            video_path = os.path.join(BLOB_FOLDER, video_title)
+            
+            if not os.path.exists(video_path):
+                raise HTTPException(status_code=404, detail="Video file not found")
+            
+            video_file = open(video_path, "rb")  # Open the video file in binary read mode
             return StreamingResponse(video_file, media_type="video/mp4")
 
         except json.JSONDecodeError:

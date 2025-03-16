@@ -12,6 +12,8 @@ export default function Home() {
     console.log("Client-side only");
   }, []);
 
+
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
@@ -25,12 +27,15 @@ export default function Home() {
         throw new Error("Failed to fetch video");
       }
 
-      const data = await response.json();
+      // The backend returns a streaming response, so we need to convert it into a blob
+      const videoBlob = await response.blob();
       
-      if (data.matched_video) {
-        setVideoUrl(data.matched_video); // Set the video URL in state
+      if (videoBlob.size > 0) {
+        // Create a URL for the video blob and set it as the video source
+        const videoUrl = URL.createObjectURL(videoBlob);
+        setVideoUrl(videoUrl);
       } else {
-        setVideoUrl(null); // If no video is matched, reset the video URL
+        setVideoUrl(null); // If no video is matched or returned, reset the video URL
       }
     } catch (error) {
       console.error("Error:", error);
