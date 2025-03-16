@@ -76,6 +76,7 @@ class CacheAutoLoader(FileSystemEventHandler):
             # Request video context
             _video_context = self._llm.describe_video(video_path, _audio_transcript).text
             video_metadata["context"] = _video_context
+            logging.info(_video_context)
 
             # Write the metadata to a JSON file
             metadata_path = os.path.join(BLOB_FOLDER, filename + ".json")
