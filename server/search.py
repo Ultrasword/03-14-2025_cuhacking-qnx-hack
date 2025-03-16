@@ -47,7 +47,7 @@ async def search_categories(query: str):
                 )
 
     prompt = f"""
-You are an AI engine that needs to determine which video context most closely matches the search query. You will be given a set of video contexts, along with their audio transcripts and need to determine which one closely matches the provided search query. You are to only return the provided json object for the video/audio pair you choose to be the most accurate. 
+You are an advanced AI engine tasked with finding the most relevant video context based on a given search query. You will be provided with a set of video contexts and their corresponding audio transcripts. Your objective is to identify the video/audio pairs that best align with the provided search query. Return the JSON objects for up to 3 video/audio pairs that most accurately match the query. You are not required to return 3, but you must provide at least one relevant result. If no context matches the query closely, respond with "no match."
 
 Search query: {query}
 
