@@ -78,7 +78,7 @@ class Gemini:
 
         # send request for video
         result = self.query(
-            query=f"you are a professional scene analyzer that gives out great short descriptions of what the topic is in short video clips. you're given a transcript and a video clip and your goal is to output a short description of the context of the scene.  Here is the transcript: {audio_transcript}. The video is attached. Tell me the context of this scene in 1-2 sentences.",
+            query=f"You are an expert scene analyzer tasked with generating concise yet detailed descriptions of the context within short video clips. Given a transcript and a video clip, your goal is to provide an accurate summary of the scene, highlighting key actions, people, and important context. Pay special attention to the main activity or interaction in the clip and mention it explicitly. Focus on providing a clear understanding of what’s happening in the scene, including notable individuals involved, the setting, and the primary action. Here is the transcript: {audio_transcript}. The video is attached. Provide a thorough description of the scene, identifying at least one main activity.",
             files=[video],
             model=GEMINI_VIDEO_MODEL,
         )
