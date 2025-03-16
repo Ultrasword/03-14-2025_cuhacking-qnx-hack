@@ -60,7 +60,7 @@
 
   z-index: -2;
 
-  opacity: 0.4;
+  opacity: 0.7;
 
   .gradients-container {
     width: 100%;
@@ -200,7 +200,7 @@
     black 70%
   );
   background-blend-mode: overlay;
-  opacity: 0.2;
+  opacity: 0.1;
 
   animation: infinite-spin 15s infinite;
   background-size: 300% 300%;

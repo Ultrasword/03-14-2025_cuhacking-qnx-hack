@@ -1,4 +1,4 @@
-export const BACKEND_IP: string = "http://10.0.0.218:8000";
+export const BACKEND_IP: string = "http://10.158.44.250:8000";
 // export const BACKEND_IP: string = "http://localhost:8000";
 
 export interface StateManager<T> {

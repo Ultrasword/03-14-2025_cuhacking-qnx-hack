@@ -51,3 +51,15 @@ Here's a bit more about us:
 | ![Peter Image](docs/1719787717158.jpeg)      | **[Peter Zhang](https://www.linkedin.com/in/peterzhang1/)**: Peter (me) – a 2nd year Computer Engineering student at the University of Waterloo. I worked on both the frontend and backend, including video search, playback, context generation, and the Gemini API setup. I contributed to all project components. Did you like the UI? That was me :)                                |
 | ![Robby Sodhi](docs/IMG_B2163EC77FD6-1.jpeg) | **[Robby Sodhi](https://www.linkedin.com/in/robby-sodhi/)**: Robby Sodhi – the guy you've probably seen in our demo videos. As a 2nd year Computer Engineering student at the University of Waterloo, he worked on the camera module and the video processing pipeline, including real-time capture and processing. He also contributed to the backend, frontend, and Gemini API setup. |
 | ![Sehaj Dhupia](docs/1738953239469.jpeg)     | **[Sehaj Dhupia](https://www.linkedin.com/in/sehaj-dhupia/)**: Sehaj – a 2nd year Computer Engineering student at the University of Waterloo. He contributed to the frontend and backend, including video search, playback, and context generation, along with the Gemini API and video processing pipeline. Note that his focus was mostly on the frontend.                            |
+
+## The Design Plan Document Thing
+
+[Here's the link to our Devpost submission](https://devpost.com/software/timeless-ai-olbzuw)
+
+ALSO before you get confused...
+
+Here's another link.
+
+It's to our notion page: [Notion Planning Page](https://cyan-pine-4d3.notion.site/Hackathon-cuhacking-1b75eca3b9df804dad91e6c59c6350ff?pvs=4)
+
+![The Design Plan](docs/image.jpeg)
