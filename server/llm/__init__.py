@@ -10,7 +10,7 @@ import moviepy
 # gemini
 # ---------------------------------------------- #
 
-API_KEY = "AIzaSyB251QquUkgdFhTUHjoWApdseA0Ffbmwl8"
+API_KEY = "AIzaSyC4hI8PGw7-jXe7loDCVTk6P2RwbCh3xGc"
 GEMINI_MODEL = "gemini-2.0-flash"
 GEMINI_VIDEO_MODEL = "gemini-1.5-pro"
 
