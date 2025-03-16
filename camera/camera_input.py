@@ -80,6 +80,10 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
     cam = cv2.VideoCapture(0)
 
     audio_enabled = platform.system() != "Linux"
+    if platform.system() == "Linux":
+        capture_fps = fps * 3
+    else:
+        capture_fps = fps
 
     # Initialize audio recording
     if audio_enabled:
@@ -159,7 +163,7 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
             start_time = time.time()
             frame_count = 0
             while (time.time() - start_time) < clip_duration:
-                expected_time = start_time + frame_count / fps
+                expected_time = start_time + frame_count / capture_fps
                 current_time = time.time()
                 if current_time < expected_time:
                     time.sleep(expected_time - current_time)
