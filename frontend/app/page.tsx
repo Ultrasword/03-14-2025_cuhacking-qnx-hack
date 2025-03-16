@@ -12,8 +12,6 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null); // Store the video URL
   const [hasSearched, setHasSearched] = useState(false);
 
-  const [errorRef, setErrorRef] = useState(null);
-
   useEffect(() => {
     console.log("Client-side only");
   }, []);
@@ -70,7 +68,7 @@ export default function Home() {
 
       {hasSearched && !videoUrl && (
         <div className="error-message" style={{color: "black"}}>
-          No video found for the search term "{searchQuery}".
+          No video found for the search term &quot;{searchQuery}&quot;.
         </div>
       )}
 
