@@ -32,7 +32,7 @@ class CacheAutoLoader(FileSystemEventHandler):
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
-    def is_file_locked(file_path):
+    def is_file_locked(self, file_path):
         try:
             with open(file_path, 'r'):
                 # Attempt to acquire an exclusive lock (non-blocking mode)
