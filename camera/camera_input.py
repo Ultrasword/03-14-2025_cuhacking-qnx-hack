@@ -66,7 +66,7 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
         base_directory, "server", "assets", "storage", "recording"
     )
     videos_directory = os.path.join(
-        base_directory, "server", "assets", "storage", "videos"
+        base_directory, "server", "assets", "storage", "video"
     )
     audio_directory = os.path.join(
         base_directory, "server", "assets", "storage", "audio"
