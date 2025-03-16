@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from typing import List
 import os
 import json
 import re
@@ -21,11 +20,6 @@ app.add_middleware(
 # Initialize Gemini client
 gemini_client = Gemini()
 
-def iterfile(video_paths: List[str]):
-    for video_path in video_paths:
-        with open(video_path, "rb") as video_file:
-            while chunk := video_file.read(1024 * 1024 * 4):  # Read in chunks of 4MB
-                yield chunk
 
 @app.get("/search_video")
 async def search_categories(query: str):
@@ -94,14 +88,26 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
         print(f"video paths: {video_paths}")
 
         for path in video_paths:
-            if not os.path.exists(path):
+            if not os.path.exists(video_path):
                 raise HTTPException(status_code=404, detail="Video file not found")
 
-        for path in video_paths:
-         if not os.path.exists(path):
-                return {"error": f"File {path} not found"}
-
-         return StreamingResponse(iterfile(video_paths), media_type="video/mp4")
+        return video_paths
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=404, detail="Search failed")
+
+
+
+@app.get("/get_video_file")
+async def get_video_file(video_path: str):
+
+
+
+    def iterfile():
+            with open(video_path, "rb") as video_file:
+                while chunk := video_file.read(
+                    1024 * 1024 * 4
+                ):  # Read in chunks of 1MB
+                    yield chunk
+
+    return StreamingResponse(iterfile(), media_type="video/mp4")
