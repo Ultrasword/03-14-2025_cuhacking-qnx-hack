@@ -129,15 +129,19 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
 
             video_filename = f"video_{timestamp}.mp4"
             final_filename = f"final_{timestamp}.mp4"
+            temp_video_filename = f"video_{timestamp}-temp.mp4"
             video_filepath = os.path.join(recording_directory, video_filename)
+            temp_video_filepath = os.path.join(recording_directory, temp_video_filename)
             if audio_enabled:
                 final_filepath = os.path.join(recording_directory, final_filename)
 
-            print(f"Recording clip: {video_filename}...")
+            print(f"Recording clip: {temp_video_filename}.temp ...")
 
             # Initialize video writer with OpenCV
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec for mp4
-            writer = cv2.VideoWriter(video_filepath, fourcc, camera_fps, resolution)
+            writer = cv2.VideoWriter(
+                temp_video_filepath, fourcc, camera_fps, resolution
+            )
 
             if audio_enabled:
                 start_event = threading.Event()
@@ -169,6 +173,21 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
                     print("Error: Failed to capture frame.")
                     break
                 frame_count += 1
+
+            # update fps of writer + contents of video file
+            camera_fps = frame_count / clip_duration
+            writer.release()
+            writer = cv2.VideoWriter(video_filepath, fourcc, camera_fps, resolution)
+            print("Frames recorded:", frame_count)
+
+            # read from temp file and write to final file
+            cap_temp = cv2.VideoCapture(temp_video_filepath)
+            while cap_temp.isOpened():
+                ret, frame = cap_temp.read()
+                if not ret:
+                    break
+                writer.write(frame)
+            cap_temp.release()
 
             writer.release()
             if audio_enabled:
