@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import './styles.css'; // Import the CSS file
+
+import ReactPlayer from "react-player";
 
 
 const BACKEND_IP: string = "http://10.0.0.218:8000";
@@ -37,33 +39,45 @@ export default function Home() {
       if (!response.ok) {
         throw new Error("Failed to fetch video");
       }
+      // The backend returns the raw bytes of the video file as a streaming response
+      if (!response.body) {
+        throw new Error("ReadableStream not supported in this browser.");
+      }
+      const reader = response.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let receivedLength = 0;
 
-      // The backend returns the raw bytes of the video file
-      const videoBlob = await response.blob();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          receivedLength += value.length;
+        }
+      }
+
+      // Combine the chunks into a single Uint8Array
+      const videoArray = new Uint8Array(receivedLength);
+      let position = 0;
+      for (const chunk of chunks) {
+        videoArray.set(chunk, position);
+        position += chunk.length;
+      }
+
+      // Create a video blob from the streamed data
+      const videoBlob = new Blob([videoArray], { type: "video/mp4" });
 
       if (videoBlob.size > 0) {
-        // If the browser supports the File System Access API,
-        // attempt to save the video file without prompting the user.
-        // Note: In many browsers, writing to disk silently is restricted.
-        if ("showSaveFilePicker" in window) {
-          try {
-            const options = {
-              suggestedName: "video.mp4",
-              types: [
-                {
-                  description: "MP4 Video",
-                  accept: { "video/mp4": [".mp4"] },
-                },
-              ],
-            };
-            // The file picker may still prompt the user for permission.
-            const handle = await (window as any).showSaveFilePicker(options);
-            const writable = await handle.createWritable();
-            await writable.write(videoBlob);
-            await writable.close();
-          } catch (savingError) {
-            console.error("Error saving file:", savingError);
-          }
+        // Cache the video file using the Cache API
+        try {
+          const cache = await caches.open("video-cache");
+          const cacheResponse = new Response(videoBlob, {
+        headers: { "Content-Type": "video/mp4" },
+          });
+          await cache.put("/cached-video.mp4", cacheResponse);
+          console.log("Video cached successfully as '/cached-video.mp4'.");
+        } catch (cacheError) {
+          console.error("Error caching video:", cacheError);
         }
 
         // Create a URL for the video blob and set it as the video source
@@ -83,36 +97,36 @@ export default function Home() {
       <p className="subheading">Find moments from your day with AI-assisted search.</p>
 
       <form onSubmit={handleSearch} className="form">
-        <div className="input-group">
-          <input
-            type="text"
-            placeholder="Search videos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-field"
-          />
-          <button type="submit" className="button">
-            Search
-          </button>
-        </div>
+      <div className="input-group">
+        <input
+        type="text"
+        placeholder="Search videos..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="input-field"
+        />
+        <button type="submit" className="button">
+        Search
+        </button>
+      </div>
       </form>
 
       {hasSearched && !videoUrl && (
-        <div className="error-message" style={{color: "black"}}>
-          No video found for the search term &quot;{searchQuery}&quot;.
-        </div>
+      <div className="error-message" style={{ color: "black" }}>
+        No video found for the search term &quot;{searchQuery}&quot;.
+      </div>
       )}
 
-      {/* Displaying the video */}
+      {/* Display and play the video using the HTML5 video player */}
       {videoUrl && (
-        <Video url={videoUrl} />
+        <ReactPlayer
+          url={videoUrl}
+          controls
+          width="100%"
+          height="100%"
+          style={{ marginTop: "1rem" }}
+        />
       )}
     </div>
-  );
-}
-
-function Video({ url }: { url: string }) {
-  return (
-    <video controls src={url} />
   );
 }

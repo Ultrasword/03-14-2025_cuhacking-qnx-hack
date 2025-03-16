@@ -72,9 +72,12 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
         if not os.path.exists(video_path):
             raise HTTPException(status_code=404, detail="Video file not found")
 
-        with open(video_path, "rb") as video_file:
-            video_data = video_file.read()  # Read the entire video file into memory
-        return Response(content=video_data, media_type="video/mp4")
+        def iterfile():
+            with open(video_path, "rb") as video_file:
+                while chunk := video_file.read(1024 * 1024):  # Read in chunks of 1MB
+                    yield chunk
+
+        return StreamingResponse(iterfile(), media_type="video/mp4")
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=404, detail="Search failed")
