@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import fcntl
 
 import llm
 import moviepy
@@ -31,14 +32,20 @@ class CacheAutoLoader(FileSystemEventHandler):
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
-    def is_file_locked(self, file_path):
-        """Check if the file is locked by attempting to open it in exclusive mode."""
+    def is_file_locked(file_path):
         try:
-            # Try to open the file for writing (exclusive lock)
-            with open(file_path, "a"):
-                return False  # File is not locked
-        except IOError:
-            return True  # File is locked
+            with open(file_path, 'r'):
+                # Attempt to acquire an exclusive lock (non-blocking mode)
+                with open(file_path, 'r') as f:
+                    try:
+                        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        fcntl.flock(f, fcntl.LOCK_UN)  # Release lock immediately
+                        return False  # No lock, file is available
+                    except IOError:
+                        return True  # File is locked
+        except Exception as e:
+            print(f"Error checking file lock: {e}")
+            return True  # Error implies file may be locked or inaccessible
 
     # ---------------------------------------------- #
     # logic

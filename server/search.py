@@ -102,8 +102,6 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
 @app.get("/get_video_file")
 async def get_video_file(video_path: str):
 
-
-
     def iterfile():
             with open(video_path, "rb") as video_file:
                 while chunk := video_file.read(
