@@ -1,99 +1,42 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import "./styles.css"; // Import the CSS file
+import React from "react";
 
-import ReactPlayer from "react-player";
+import { HeroSection } from "./components/Hero";
+import { Library } from "./components/LIbrary";
+import { MorphingGradient } from "./components/MorphingGradient";
 
-const BACKEND_IP: string = "http://10.0.0.218:8000";
+import { ApplicationProps } from "./constants";
+
+import styles from "./page.module.css";
+// -------------------------------------------------------- //
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [videoUrl, setVideoUrl] = useState<string | null>(null); // Store the video URL
-  const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = React.useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [videoURLs, setVideoURLs] = React.useState<(string | null)[]>([]);
+  const [videoURLsSize, setVideoURLsSize] = React.useState<number>(0);
 
-  useEffect(() => {
-    console.log("Client-side only");
-  }, []);
-
-  useEffect(() => {
-    console.log(videoUrl);
-  }, [videoUrl]);
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Searching for:", searchQuery);
-    setHasSearched(true);
-
-    try {
-      // Make the GET request to search endpoint
-      const response = await fetch(
-      `${BACKEND_IP}/search_video?query=${encodeURIComponent(searchQuery)}`
-      );
-
-      if (!response.ok) {
-      throw new Error("Failed to fetch video");
-      }
-
-      // Get the video blob directly from the response
-      const videoBlob = await response.blob();
-      console.log("Video Blob:", videoBlob.size, videoBlob.type, videoBlob);
-
-      if (videoBlob.size > 0) {
-      // Create a URL for the video blob and set it as the video source
-      const videoUrl = URL.createObjectURL(videoBlob);
-      setVideoUrl(videoUrl);
-      console.log("Video URL:", videoUrl);
-      } else {
-      setVideoUrl(null); // If no video is returned, reset the video URL
-      console.log("No video found for the search term:", searchQuery);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+  const appProps: ApplicationProps = {
+    isSearching: { getter: isSearching, setter: setIsSearching },
+    searchQuery: { getter: searchQuery, setter: setSearchQuery },
+    result: {
+      urls: { getter: videoURLs, setter: setVideoURLs },
+      size: { getter: videoURLsSize, setter: setVideoURLsSize },
+    },
   };
 
+  React.useEffect(() => {
+    appProps.result.size.setter(appProps.result.urls.getter?.length);
+  }, [appProps.result.urls.getter, appProps.result.size]);
+
   return (
-    <div className="container">
-      <h1 className="heading">AI-Powered Video Search</h1>
-      <p className="subheading">Find moments from your day with AI-assisted search.</p>
-
-      <form onSubmit={handleSearch} className="form">
-        <div className="input-group">
-          <input
-            type="text"
-            placeholder="Search videos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-field"
-          />
-          <button type="submit" className="button">
-            Search
-          </button>
-        </div>
-      </form>
-
-      {hasSearched && !videoUrl && (
-        <div className="error-message" style={{ color: "black" }}>
-          No video found for the search term &quot;{searchQuery}&quot;.
-        </div>
-      )}
-
-      {/* Display and play the video using the HTML5 video player */}
-      {videoUrl && (
-        <ReactPlayer
-          url={videoUrl}
-          controls
-          autoPlay
-          width="640px"
-          height="360px"
-          style={{ marginTop: "1rem" }}
-        />
-        // <video width={640} height={360} controls>
-        //   <source src={videoUrl} type="video/mp4" />
-        //   Your browser does not support the video tag.
-        // </video>
-      )}
+    <div>
+      <div className={styles["container"]}>
+        <HeroSection globals={appProps} />
+        <Library globals={appProps} />
+      </div>
+      <MorphingGradient />
     </div>
   );
 }

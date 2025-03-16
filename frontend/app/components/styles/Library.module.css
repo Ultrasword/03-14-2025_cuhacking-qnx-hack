@@ -1,0 +1,37 @@
+.container {
+  width: 80%;
+  height: 70vh;
+  margin: auto; /* centers the container in its parent */
+  margin-bottom: 10vh;
+
+  /* Flexbox with vendor prefixes for broader browser support */
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.card-container {
+  height: 100%;
+  margin: auto; /* centers the card-container in .container */
+
+  /* CSS Grid with vendor prefix for IE 10/11 */
+  display: -ms-grid;
+  display: grid;
+  grid-gap: 20px;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+}

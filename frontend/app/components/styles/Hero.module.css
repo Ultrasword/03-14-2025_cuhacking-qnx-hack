@@ -1,0 +1,125 @@
+.container {
+  top: 0px;
+  width: 100%;
+  height: 50vh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+
+  padding: 30px;
+  padding-top: 50px;
+  padding-bottom: 20px;
+  margin-top: 10vh;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font: 5em "Monaspace Radon", monospace !important;
+  font-weight: bolder;
+  text-align: center;
+}
+
+.subtitle {
+  padding-top: 30px;
+  font: 1.2em "Monaspace Neon", monospace;
+  text-align: center;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 70%;
+
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 90%;
+  padding: 20px;
+  padding-bottom: 5px;
+  margin: 0 auto;
+}
+
+.input-container {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+
+  gap: 15px;
+}
+
+.input {
+  width: 70%;
+  padding: 10px;
+
+  color: black;
+  font-size: 16px;
+  font-family: "Monaspace Krypton", sans-serif;
+
+  border: none;
+  border-radius: 10px;
+
+  background-color: #f0f0f0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.button {
+  width: 100px;
+  padding: 10px;
+
+  background: var(--tertiary-heavy);
+
+  color: black;
+  font-weight: bold;
+  font-family: "Monaspace Krypton", monospace;
+
+  margin: 10px 0;
+  border: none;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.button:hover {
+  background: var(--tertiary);
+  transform: scale(1.01);
+
+  transition: background transform 0.3s;
+}
+
+.subbar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  padding: 20px;
+  padding-top: 5px;
+
+  font: 1em "Monaspace Argon", monospace;
+}
