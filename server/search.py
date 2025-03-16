@@ -114,6 +114,8 @@ async def get_video_file(video_path: str):
 
 @app.get("/get_video_context")
 async def get_video_context(video_path: str):
+    # decode video path
+    # print(video_path)
 
     BLOB_FOLDER = os.path.join("assets", "storage", "blobs")
 
@@ -124,7 +126,9 @@ async def get_video_context(video_path: str):
     filename = os.path.basename(video_path)
     filename = os.path.splitext(filename)[0]
 
+
     file_path = os.path.join(BLOB_FOLDER, f"{filename}.json")
+    print(filename, file_path)
 
     # check if file exists
     if not os.path.exists(file_path):
@@ -134,7 +138,7 @@ async def get_video_context(video_path: str):
     # read file
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            video_context = json.dump(f)
+            video_context = json.load(f)
         
         return video_context
 
