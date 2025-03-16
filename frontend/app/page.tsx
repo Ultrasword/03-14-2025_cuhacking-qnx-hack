@@ -16,6 +16,9 @@ export default function Home() {
     console.log("Client-side only");
   }, []);
 
+  useEffect(() => {
+    console.log(videoUrl)
+  }, [videoUrl]);
 
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -25,21 +28,49 @@ export default function Home() {
 
     try {
       // Make the GET request to search endpoint
-      const response = await fetch(`${BACKEND_IP}/search_video?query=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(
+        `${BACKEND_IP}/search_video?query=${encodeURIComponent(searchQuery)}`
+      );
+
+      console.log(response);
 
       if (!response.ok) {
         throw new Error("Failed to fetch video");
       }
 
-      // The backend returns a streaming response, so we need to convert it into a blob
+      // The backend returns the raw bytes of the video file
       const videoBlob = await response.blob();
-      
+
       if (videoBlob.size > 0) {
+        // If the browser supports the File System Access API,
+        // attempt to save the video file without prompting the user.
+        // Note: In many browsers, writing to disk silently is restricted.
+        if ("showSaveFilePicker" in window) {
+          try {
+            const options = {
+              suggestedName: "video.mp4",
+              types: [
+                {
+                  description: "MP4 Video",
+                  accept: { "video/mp4": [".mp4"] },
+                },
+              ],
+            };
+            // The file picker may still prompt the user for permission.
+            const handle = await (window as any).showSaveFilePicker(options);
+            const writable = await handle.createWritable();
+            await writable.write(videoBlob);
+            await writable.close();
+          } catch (savingError) {
+            console.error("Error saving file:", savingError);
+          }
+        }
+
         // Create a URL for the video blob and set it as the video source
         const videoUrl = URL.createObjectURL(videoBlob);
         setVideoUrl(videoUrl);
       } else {
-        setVideoUrl(null); // If no video is matched or returned, reset the video URL
+        setVideoUrl(null); // If no video is returned, reset the video URL
       }
     } catch (error) {
       console.error("Error:", error);
@@ -73,18 +104,15 @@ export default function Home() {
       )}
 
       {/* Displaying the video */}
-      <div className="video-results">
-        {videoUrl ? (
-          <div className="video-item">
-            <video controls className="video-player">
-              <source src={videoUrl} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        ) : hasSearched ? (
-          <p>No video found for the search term.</p>
-        ) : null}
-      </div>
+      {videoUrl && (
+        <Video url={videoUrl} />
+      )}
     </div>
+  );
+}
+
+function Video({ url }: { url: string }) {
+  return (
+    <video controls src={url} />
   );
 }

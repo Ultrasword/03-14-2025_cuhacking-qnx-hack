@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import os
@@ -67,11 +67,14 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
         selected_blob = json.loads(response_text)
         video_path = selected_blob["video"]
 
+        print(f"Selected video: {video_path}")
+
         if not os.path.exists(video_path):
             raise HTTPException(status_code=404, detail="Video file not found")
 
-        video_file = open(video_path, "rb")  # Open the video file in binary read mode
-        return StreamingResponse(video_file, media_type="video/mp4")
+        with open(video_path, "rb") as video_file:
+            video_data = video_file.read()  # Read the entire video file into memory
+        return Response(content=video_data, media_type="video/mp4")
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=404, detail="Search failed")
