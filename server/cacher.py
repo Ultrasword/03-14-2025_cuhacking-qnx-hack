@@ -108,9 +108,10 @@ class CacheAutoLoader(FileSystemEventHandler):
         _filename = os.path.relpath(_filename, _BASE_PATH)
         print(_filename, "created")
 
+        # Wait until the file is no longer locked
         while self.is_file_locked(_filename):
             print(f"File {_filename} is locked, waiting...")
-            time.sleep(1)  # Sleep for 1 second before checking again
+            time.sleep(0.5)  # Sleep for 1 second before checking again
 
         self.add_video_to_cache(_filename)
 

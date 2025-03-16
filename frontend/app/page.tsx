@@ -3,10 +3,16 @@
 import { useState, useEffect } from "react";
 import './styles.css'; // Import the CSS file
 
+
+const BACKEND_IP: string = "http://10.0.0.218:8000";
+
+
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null); // Store the video URL
   const [hasSearched, setHasSearched] = useState(false);
+
+  const [errorRef, setErrorRef] = useState(null);
 
   useEffect(() => {
     console.log("Client-side only");
@@ -21,7 +27,7 @@ export default function Home() {
 
     try {
       // Make the GET request to search endpoint
-      const response = await fetch(`http://127.0.0.1:8000/search_video?query=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`${BACKEND_IP}/search_video?query=${encodeURIComponent(searchQuery)}`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch video");
@@ -61,6 +67,12 @@ export default function Home() {
           </button>
         </div>
       </form>
+
+      {hasSearched && !videoUrl && (
+        <div className="error-message" style={{color: "black"}}>
+          No video found for the search term "{searchQuery}".
+        </div>
+      )}
 
       {/* Displaying the video */}
       <div className="video-results">

@@ -216,6 +216,11 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
                 shutil.move(video_filepath, destination_path)
                 print(f"Video moved to {destination_path}")
 
+            # waiting 20s before next clip
+            print("Waiting 20s before next clip...\n\n")
+            time.sleep(20)
+            print("Recording next clip...")
+
     except KeyboardInterrupt:
         print("\nRecording stopped by user.")
 
