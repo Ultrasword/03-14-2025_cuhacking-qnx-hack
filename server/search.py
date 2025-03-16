@@ -76,7 +76,7 @@ Various video json objects: {all_video_info}
 
         except json.JSONDecodeError:
             raise HTTPException(
-                status_code=500, detail="Invalid JSON response from Gemini"
+                status_code=404, detail="Search failed"
             )
 
     except Exception as e:
