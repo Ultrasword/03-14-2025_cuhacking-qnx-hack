@@ -56,7 +56,7 @@ def merge_audio_video(video_filepath, audio_filepath, output_filepath):
     subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
-def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
+def record_continuous_clips(clip_duration=20, fps=30, resolution=(640, 480)):
     # Get base directory
     current_dir = os.path.dirname(os.path.abspath(__file__))
     base_directory = os.path.dirname(current_dir)  # Go up one level from server
@@ -218,7 +218,7 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
 
             # waiting 20s before next clip
             print("Waiting 20s before next clip...\n\n")
-            time.sleep(30)
+            time.sleep(45)
             print("Recording next clip...")
 
     except KeyboardInterrupt:
