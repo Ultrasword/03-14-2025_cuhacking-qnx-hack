@@ -103,10 +103,42 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
 async def get_video_file(video_path: str):
 
     def iterfile():
-            with open(video_path, "rb") as video_file:
-                while chunk := video_file.read(
-                    1024 * 1024 * 4
-                ):  # Read in chunks of 1MB
-                    yield chunk
+        with open(video_path, "rb") as video_file:
+            while chunk := video_file.read(
+                1024 * 1024 * 4
+            ):  # Read in chunks of 1MB
+                yield chunk
 
     return StreamingResponse(iterfile(), media_type="video/mp4")
+
+
+@app.get("/get_video_context")
+async def get_video_context(video_path: str):
+
+    BLOB_FOLDER = os.path.join("assets", "storage", "blobs")
+
+    if not os.path.exists(BLOB_FOLDER):
+        raise HTTPException(status_code=404, detail="Blob folder not found")
+
+    # extract name of file
+    filename = os.path.basename(video_path)
+    filename = os.path.splitext(filename)[0]
+
+    file_path = os.path.join(BLOB_FOLDER, f"{filename}.json")
+
+    # check if file exists
+    if not os.path.exists(file_path):
+        print("ERROR: why does the file not exist? -- ", file_path)
+        raise HTTPException(status_code=404, detail="Video context file not found")
+
+    # read file
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            video_context = json.dump(f)
+        
+        return video_context
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error reading {filename}: {e}"
+        )
