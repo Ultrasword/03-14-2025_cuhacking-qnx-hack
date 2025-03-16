@@ -12,7 +12,6 @@ from watchdog.events import FileSystemEventHandler
 # ---------------------------------------------- #
 
 _BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-CACHE_FILE = os.path.join("assets", "storage", "cache.json")
 BLOB_FOLDER = os.path.join("assets", "storage", "blobs")
 VIDEO_FOLDER = os.path.join("assets", "storage", "video")
 AUDIO_FOLDER = os.path.join("assets", "storage", "audio")
@@ -25,10 +24,6 @@ class CacheAutoLoader(FileSystemEventHandler):
         super().__init__()
         self._llm = llm.Gemini()
 
-        self._cache = {}
-        with open(CACHE_FILE, "r") as f:
-            self._cache = json.load(f)
-
         self._events = []
 
         # create folders if they don't exist
@@ -40,11 +35,11 @@ class CacheAutoLoader(FileSystemEventHandler):
         """Check if the file is locked by attempting to open it in exclusive mode."""
         try:
             # Try to open the file for writing (exclusive lock)
-            with open(file_path, 'a'):
+            with open(file_path, "a"):
                 return False  # File is not locked
         except IOError:
             return True  # File is locked
-        
+
     # ---------------------------------------------- #
     # logic
     # ---------------------------------------------- #
@@ -116,7 +111,7 @@ class CacheAutoLoader(FileSystemEventHandler):
         while self.is_file_locked(_filename):
             print(f"File {_filename} is locked, waiting...")
             time.sleep(1)  # Sleep for 1 second before checking again
-        
+
         self.add_video_to_cache(_filename)
 
     def on_modified(self, event):
