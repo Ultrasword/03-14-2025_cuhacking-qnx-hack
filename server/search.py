@@ -74,7 +74,9 @@ Various video json objects: {all_video_info if all_video_info else "No video jso
 
         def iterfile():
             with open(video_path, "rb") as video_file:
-                while chunk := video_file.read(1024 * 1024):  # Read in chunks of 1MB
+                while chunk := video_file.read(
+                    1024 * 1024 * 4
+                ):  # Read in chunks of 1MB
                     yield chunk
 
         return StreamingResponse(iterfile(), media_type="video/mp4")
