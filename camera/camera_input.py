@@ -218,7 +218,7 @@ def record_continuous_clips(clip_duration=10, fps=30, resolution=(640, 480)):
 
             # waiting 20s before next clip
             print("Waiting 20s before next clip...\n\n")
-            time.sleep(20)
+            time.sleep(30)
             print("Recording next clip...")
 
     except KeyboardInterrupt:
