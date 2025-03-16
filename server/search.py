@@ -52,24 +52,25 @@ You are an advanced AI engine tasked with finding the most relevant video contex
 Return the data in the following format:
 
 
-{
+{{
   "matches": [
-    {
+    {{
       "category": null,
       "context": "Brief description of the scene",
       "transcript": "Transcript of the video",
       "video": "Path to the video file",
       "audio": "Path to the audio file"
-    },
+    }},
     ...
     (up to 3 relevant matches)
   ]
-}
+}}
 Search query: {query}
 
 Various video json objects: {all_video_info if all_video_info else "No video json objects found"}
 
 """
+
     result = gemini_client.query(query=prompt, files=[])  # Removed empty files list
 
     response_text = gemini_client.retrieve_request(result)
