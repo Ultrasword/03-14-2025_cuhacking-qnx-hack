@@ -48,7 +48,7 @@ def merge_audio_video(video_filepath, audio_filepath, output_filepath):
         "-i",
         audio_filepath,
         "-c:v",
-        "copy",
+        "libx264",
         "-c:a",
         "aac",
         output_filepath,

@@ -28,74 +28,26 @@ export default function Home() {
     try {
       // Make the GET request to search endpoint
       const response = await fetch(
-        `${BACKEND_IP}/search_video?query=${encodeURIComponent(searchQuery)}`
-      ).then((res) => {
-        console.log(res);
+      `${BACKEND_IP}/search_video?query=${encodeURIComponent(searchQuery)}`
+      );
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch video");
-        }
-
-        // backend returns raw byte sof video file as a streamign response
-        if (!res.body) {
-          throw new Error("ReadableStream not supported in this browser.");
-        }
-        return res;
-      });
-
-      // The backend returns the raw bytes of the video file as a streaming response
-      if (!response.body) {
-        throw new Error("ReadableStream not supported in this browser.");
-      }
-      const reader = response.body.getReader();
-      const chunks: Uint8Array[] = [];
-      let receivedLength = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) {
-          chunks.push(value);
-          receivedLength += value.length;
-        }
+      if (!response.ok) {
+      throw new Error("Failed to fetch video");
       }
 
-      // Combine the chunks into a single Uint8Array
-      const videoArray = new Uint8Array(receivedLength);
-      let position = 0;
-      for (const chunk of chunks) {
-        videoArray.set(chunk, position);
-        position += chunk.length;
-      }
-      console.log(videoArray)
-
-      // Create a video blob from the streamed data
-      const videoBlob = new Blob([videoArray], { type: "video/mp4" });
+      // Get the video blob directly from the response
+      const videoBlob = await response.blob();
+      console.log("Video Blob:", videoBlob.size, videoBlob.type, videoBlob);
 
       if (videoBlob.size > 0) {
-        // Cache the video file using the Cache API
-        try {
-          const cache = await caches.open("video-cache");
-          const cacheResponse = new Response(videoBlob, {
-            headers: { "Content-Type": "video/mp4" },
-          });
-          await cache.put("/cached-video.mp4", cacheResponse).then(() => {
-            console.log("Video cached successfully as '/cached-video.mp4'.");
-          });
-        } catch (cacheError) {
-          console.error("Error caching video:", cacheError);
-        }
-
-        // Create a URL for the video blob and set it as the video source
-        const videoUrl = URL.createObjectURL(videoBlob);
-        setVideoUrl(videoUrl);
-
-        console.log("Video URL:", videoUrl);
-      } else {
-        setVideoUrl(null); // If no video is returned, reset the video URL
-      }
-
+      // Create a URL for the video blob and set it as the video source
+      const videoUrl = URL.createObjectURL(videoBlob);
+      setVideoUrl(videoUrl);
       console.log("Video URL:", videoUrl);
+      } else {
+      setVideoUrl(null); // If no video is returned, reset the video URL
+      console.log("No video found for the search term:", searchQuery);
+      }
     } catch (error) {
       console.error("Error:", error);
     }
@@ -132,6 +84,7 @@ export default function Home() {
         <ReactPlayer
           url={videoUrl}
           controls
+          autoPlay
           width="640px"
           height="360px"
           style={{ marginTop: "1rem" }}
